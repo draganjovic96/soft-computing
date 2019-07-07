@@ -1,21 +1,73 @@
 import cv2
 import sys
+import numpy as np
 
 
 def video_to_frames(source):
+    video = cv2.VideoCapture(source)
 
-    vidcap = cv2.VideoCapture(source)
-
-    if not vidcap.isOpened():
+    if not video.isOpened():
         print('Cannot open video!')
         sys.exit()
 
     frames = []
-    success, image = vidcap.read()
-    success = True
+    success, image = video.read()
+    # success = True
     while success:
-        success, image = vidcap.read()
+        success, image = video.read()
         frames.append(image)
 
     return frames
 
+
+def edges(image):
+    gray_scale = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    kernel = np.ones((3, 3))
+    erode_image = cv2.erode(gray_scale, kernel, iterations=1)
+    return cv2.Canny(erode_image, 75, 150)
+
+
+def line(image, lower, upper):
+    original_image = cv2.imread(image)
+    mask = cv2.inRange(original_image, lower, upper)
+    line_image = cv2.bitwise_and(original_image, original_image, mask=mask)
+    return cv2.HoughLinesP(edges(line_image), 1, np.pi / 180, 80, maxLineGap=30)
+
+
+def detect_blue_and_green_line(start_image):
+    blue_and_green = []
+
+    # detecting blue line
+    blue_lower = np.array([200, 0, 0], dtype="uint8")
+    blue_upper = np.array([255, 100, 100], dtype="uint8")
+    blue_lines = line(start_image, blue_lower, blue_upper)
+
+    blue_and_green.append(equation_of_line(blue_lines))
+
+    # detecting green line
+    green_lower = np.array([0, 200, 0], dtype="uint8")
+    green_upper = np.array([100, 255, 100], dtype="uint8")
+    green_lines = line(start_image, green_lower, green_upper)
+
+    blue_and_green.append(equation_of_line(green_lines))
+
+    return blue_and_green
+
+
+def equation_of_line(lines):
+    k = 0
+    n = 0
+    x_min = sys.maxsize
+    x_max = 0
+    for line in lines:
+        for x1, y1, x2, y2 in line:
+            if x1 < x_min:
+                x_min = x1
+            if x2 > x_max:
+                x_max = x2
+            k_temp = (y2 - y1) / (x2 - x1)
+            k += k_temp
+            n_temp = y1 - k_temp * x1
+            n += n_temp
+
+    return k / len(lines), n / len(lines), x_min, x_max
