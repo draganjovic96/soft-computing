@@ -1,13 +1,10 @@
-from functions import detect_blue_and_green_line
+from functions import detect_number_contour
+from functions import video_to_frames
 
+frames = video_to_frames('video-0.avi')
 
-blue_and_green = detect_blue_and_green_line('video0-frame0.jpg')
-
-for x in blue_and_green:
-    print(x)
-
-
-
+for frame in frames:
+    detect_number_contour(frame)
 
 
 
