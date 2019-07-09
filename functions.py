@@ -57,6 +57,8 @@ def detect_blue_and_green_line(start_image):
 def equation_of_line(lines):
     k = 0
     n = 0
+
+    # range of x, range of y = [x_min*k + n, x_max*k + n]
     x_min = sys.maxsize
     x_max = 0
     for line in lines:
@@ -71,3 +73,29 @@ def equation_of_line(lines):
             n += n_temp
 
     return k / len(lines), n / len(lines), x_min, x_max
+
+
+def detect_number_regions(image):
+
+    number_regions = []
+
+    if type(image) is np.ndarray:
+
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
+        invert_thresh = 255 - thresh
+        contours, hierarchy = cv2.findContours(invert_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            if 10 < w < 50 and 10 < h < 50:
+                region = invert_thresh[y:y + h + 1, x:x + w + 1]
+                number_regions.append(cv2.resize(region, (28, 28), interpolation=cv2.INTER_NEAREST))
+
+    number_regions = sorted(number_regions, key=lambda item: item[1][0])
+    return number_regions
+
+
+def find_number(number_contour):
+    return 0
+
