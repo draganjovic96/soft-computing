@@ -1,10 +1,19 @@
-from functions import detect_number_contour
-from functions import video_to_frames
+import functions
+import cv2
+import keras
+import numpy as np
 
-frames = video_to_frames('video-0.avi')
+frames = functions.video_to_frames('video-0.avi')
 
-for frame in frames:
-    detect_number_contour(frame)
+frame = cv2.imread('video0-frame0.jpg')
 
+contours = functions.detect_number_regions(frame)
 
+model = keras.models.load_model("keras_mnist.h5")
+
+for contour in contours:
+    print(contour)
+    contour = contour / 255
+    contour = contour.flatten()
+    print(model.predict_classes(np.array([contour])))
 
