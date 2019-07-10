@@ -48,12 +48,7 @@ for video_counter in range(0, 10):
     previous_frame = []
 
     for frame in frames:
-        print(frames_counter)
         current_frame = []
-
-        if frames_counter == 44:
-            print('cao')
-            print('cao')
 
         region_counter = 0
         regions = []
@@ -104,8 +99,6 @@ for video_counter in range(0, 10):
         frames_counter += 1
         previous_frame = []
         previous_frame = current_frame
-        for x in range (0, len(previous_frame)):
-            print(previous_frame[x].c_x, previous_frame[x].c_y)
 
     print(sum)
     f.write("video-" + str(video_counter) + ".avi" + '\t' + str(sum) + '\n')
