@@ -23,6 +23,11 @@ class Box:
         self.g_line = g_line
 
 
+f = open("out.txt", "w+")
+f.write("RA 203/2015 Dragan Jovic\n")
+f.write("file\t\tsum\n")
+
+
 for video_counter in range(0, 10):
 
     frames = video_to_frames('video-' + str(video_counter) + '.avi')
@@ -43,10 +48,16 @@ for video_counter in range(0, 10):
     previous_frame = []
 
     for frame in frames:
-
+        print(frames_counter)
         current_frame = []
 
+        if frames_counter == 44:
+            print('cao')
+            print('cao')
+
         region_counter = 0
+        regions = []
+        regions_coordinates = []
         regions, regions_coordinates = detect_number_regions(frame)
 
         if frames_counter == 0:
@@ -64,14 +75,16 @@ for video_counter in range(0, 10):
             if frames_counter == 0:
                 current_frame.append(Box(regions_coordinates[region_counter][0], regions_coordinates[region_counter][1], False, False))
             else:
+                add_region = True
                 for previous_region in previous_frame:
-                    if previous_region.c_x - 3 <= regions_coordinates[region_counter][0] <= previous_region.c_x + 3:
+                    if previous_region.c_x - 2 <= regions_coordinates[region_counter][0] <= previous_region.c_x + 2 and previous_region.c_y - 2 <= regions_coordinates[region_counter][1] <= previous_region.c_y + 2:
                         current_frame.append(Box(regions_coordinates[region_counter][0], regions_coordinates[region_counter][1], previous_region.b_line, previous_region.g_line))
-                    else:
-                        current_frame.append(Box(regions_coordinates[region_counter][0], regions_coordinates[region_counter][1], False, False))
+                        add_region = False
+                if add_region:
+                    current_frame.append(Box(regions_coordinates[region_counter][0], regions_coordinates[region_counter][1], False, False))
 
             for current_region in current_frame:
-                if current_region.c_x - 3 <= regions_coordinates[region_counter][0] <= current_region.c_x + 3:
+                if current_region.c_x - 2 <= regions_coordinates[region_counter][0] <= current_region.c_x + 2 and current_region.c_y - 2 <= regions_coordinates[region_counter][1] <= current_region.c_y + 2:
                     center = region_center(regions_coordinates[region_counter])
                     if not current_region.b_line:
                         # check if number crossed blue line
@@ -89,6 +102,13 @@ for video_counter in range(0, 10):
 
             region_counter += 1
         frames_counter += 1
+        previous_frame = []
         previous_frame = current_frame
+        for x in range (0, len(previous_frame)):
+            print(previous_frame[x].c_x, previous_frame[x].c_y)
 
     print(sum)
+    f.write("video-" + str(video_counter) + ".avi" + '\t' + str(sum) + '\n')
+    cv2.destroyAllWindows()
+
+f.close()

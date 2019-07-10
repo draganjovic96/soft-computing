@@ -18,6 +18,7 @@ def video_to_frames(source):
         success, image = video.read()
         frames.append(image)
 
+    video.release()
     return frames
 
 
@@ -31,7 +32,7 @@ def edges(image):
 def line(image, lower, upper):
     mask = cv2.inRange(image, lower, upper)
     line_image = cv2.bitwise_and(image, image, mask=mask)
-    return cv2.HoughLinesP(edges(line_image), 1, np.pi / 180, 40, maxLineGap=30)
+    return cv2.HoughLinesP(edges(line_image), 1, np.pi / 180, 30, maxLineGap=30)
 
 
 def detect_blue_and_green_line(start_image):
