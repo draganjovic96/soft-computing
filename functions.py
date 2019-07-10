@@ -1,6 +1,7 @@
 import cv2
 import sys
 import numpy as np
+import math
 
 
 def video_to_frames(source):
@@ -28,10 +29,9 @@ def edges(image):
 
 
 def line(image, lower, upper):
-    original_image = cv2.imread(image)
-    mask = cv2.inRange(original_image, lower, upper)
-    line_image = cv2.bitwise_and(original_image, original_image, mask=mask)
-    return cv2.HoughLinesP(edges(line_image), 1, np.pi / 180, 80, maxLineGap=30)
+    mask = cv2.inRange(image, lower, upper)
+    line_image = cv2.bitwise_and(image, image, mask=mask)
+    return cv2.HoughLinesP(edges(line_image), 1, np.pi / 180, 40, maxLineGap=30)
 
 
 def detect_blue_and_green_line(start_image):
@@ -41,7 +41,6 @@ def detect_blue_and_green_line(start_image):
     blue_lower = np.array([200, 0, 0], dtype="uint8")
     blue_upper = np.array([255, 100, 100], dtype="uint8")
     blue_lines = line(start_image, blue_lower, blue_upper)
-
     blue_and_green.append(equation_of_line(blue_lines))
 
     # detecting green line
@@ -77,6 +76,7 @@ def equation_of_line(lines):
 
 def detect_number_regions(image):
 
+    region_coordinates = []
     number_regions = []
 
     if type(image) is np.ndarray:
@@ -90,12 +90,25 @@ def detect_number_regions(image):
             x, y, w, h = cv2.boundingRect(contour)
             if 10 < w < 50 and 10 < h < 50:
                 region = invert_thresh[y:y + h + 1, x:x + w + 1]
+                region_coordinates.append([x, y, w, h])
                 number_regions.append(cv2.resize(region, (28, 28), interpolation=cv2.INTER_NEAREST))
 
-    number_regions = sorted(number_regions, key=lambda item: item[1][0])
-    return number_regions
+    return [number_regions, region_coordinates]
 
 
-def find_number(number_contour):
-    return 0
+def distance(point, k, n):
+    return abs(k * point[0] - point[1] + n) / math.sqrt(k * k + 1)
+
+
+def region_center(region):
+    x, y, w, h = region
+    x_center = x + w / 2
+    y_center = y + h / 2
+    return [x_center, y_center]
+
+
+def predict_number(model, region):
+    region = region / 255
+    region = region.flatten()
+    return model.predict_classes(np.array([region]))
 
